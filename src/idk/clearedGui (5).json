@@ -1,0 +1,65 @@
+[
+  [
+    [
+      [
+        {
+          "field": "LOrg"
+        }
+      ],
+      []
+    ],
+    [
+      [
+        {
+          "field": "Uro"
+        }
+      ],
+      [
+        {
+          "field": "DUkonc"
+        }
+      ],
+      []
+    ],
+    [
+      [
+        {
+          "field": "LExpir"
+        }
+      ],
+      [
+        {
+          "field": "LPlatnost"
+        }
+      ],
+      [
+        {
+          "field": "SkrUz"
+        },
+        {
+          "field": "DExpir"
+        },
+        {
+          "field": "Email"
+        }
+      ],
+      []
+    ],
+    [
+      [
+        {
+          "field": "Pozn"
+        }
+      ],
+      [
+        {
+          "field": "Zrus"
+        }
+      ],
+      []
+    ],
+    [
+      []
+    ]
+  ]
+]
