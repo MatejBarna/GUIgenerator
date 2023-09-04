@@ -26,10 +26,12 @@ function App() {
 
   const [initialItems, setInitialItems] = useState(schemaId);
   const [secondItems, setSecondItems] = useState([[[]]]);
+  const [title, setTitle] = useState([])
   const [bookmarks, setBookmarks] = useState([[[]]]);
   const [position, setPosition] = useState(0);
   const [bookmarkName, setBookmarkName] = useState(['Formular'])
   const [text, setText] = useState('Zalozka' + bookmarkName.length)
+  const [text2, setText2] = useState('');
   const onDragEnd = useCallback((result) => {
     const { source, destination } = result;
 
@@ -83,20 +85,35 @@ function App() {
   }, [initialItems, secondItems]);
 
   const handleChange = (e) => {
-    setText(e.target.value)
-    console.log(text);
-  }
+    const { name, value } = e.target;
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    if (!text.length) {
-      return;
+    if (name === 'text') {
+      setText(value)
+      console.log(text);
+    } else if (name === 'text2') {
+      setText2(value)
     }
 
-    setBookmarks([...bookmarks, [[[]]]])
-    console.log([...bookmarkName])
-    setBookmarkName([...bookmarkName, text])
-    setText('Zalozka' + (bookmarks.length + 1))
+    
+  }
+
+  const handleSubmit = (e, formName) => {
+    e.preventDefault();
+    if(formName === 'bookmarkForm')
+      {if (!text.length) {
+        return;
+      }
+      setBookmarks([...bookmarks, [[[]]]])
+      console.log([...bookmarkName])
+      setBookmarkName([...bookmarkName, text])
+      setText('Zalozka' + (bookmarks.length + 1))}
+    else if(formName === 'titleForm'){
+      if(!text2.length){
+        console.log('nothin in here')
+      }
+      setTitle([...title, text2])
+      console.log(title)
+    }
   }
 
   return (
@@ -171,7 +188,17 @@ function App() {
               )}
             </Droppable>
           </div>
-
+          <form onSubmit={(e) => handleSubmit(e, 'titleForm')}>
+            <input className="formInputButton"
+              id="newBookmark"
+              name='text2'
+              value={text2}
+              onChange={handleChange}
+            />
+            <button>
+              Add a bookmark
+            </button>
+          </form>
         </div>
       </DragDropContext>
       <div className='schemaContainer'>
@@ -208,13 +235,12 @@ function App() {
             </div>
           ))}
 
-          <form onSubmit={handleSubmit}>
-            <label htmlFor="newBookmark">
-            </label>
+          <form onSubmit={(e) => handleSubmit(e, 'bookmarkForm')}>
             <input className="formInputButton"
               id="newBookmark"
-              onChange={handleChange}
+              name='text'
               value={text}
+              onChange={handleChange}
             />
             <button>
               Add a bookmark
