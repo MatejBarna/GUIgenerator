@@ -2,6 +2,7 @@ import logo from './logo.svg';
 import './App.css';
 import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
 import React, { useState, useCallback } from 'react';
+import { X } from 'lucide-react';
 
 //schemas import
 import schema1 from './schemas/schema.json';
@@ -17,6 +18,7 @@ function App() {
     return schema.map((item) => ({
       ...item,
       id: generateUniqueId(),
+      class: 'item'
     }));
   };
 
@@ -26,7 +28,8 @@ function App() {
   const [secondItems, setSecondItems] = useState([[[]]]);
   const [bookmarks, setBookmarks] = useState([[[]]]);
   const [position, setPosition] = useState(0);
-
+  const [bookmarkName, setBookmarkName] = useState(['Formular'])
+  const [text, setText] = useState('Zalozka' + bookmarkName.length)
   const onDragEnd = useCallback((result) => {
     const { source, destination } = result;
 
@@ -59,36 +62,42 @@ function App() {
       console.log(source, destination)
 
       const sourceArray = srcRow === 'initial' ? initialItems : secondItems[srcRow][srcCol];
-
       const destinationArray = destRow === 'initial' ? initialItems : secondItems[destRow][destCol];
-
       const [movedItem] = sourceArray.splice(source.index, 1);
 
       destinationArray.splice(destination.index, 0, movedItem);
     }
-    const clearedArrays = secondItems.map((row) => row.filter((clear) => clear.length > 0)).filter((cleared) => cleared.length > 0)
 
-    {/*
-    if(destRow !== 'initial'){
-      if(clearedArrays[destRow][clearedArrays[destRow].length - 1].length){
-        clearedArrays[destRow].splice(clearedArrays[destRow].length, 0, [])
-      }
-      
-      if(clearedArrays[clearedArrays.length - 1][0].length){
-        clearedArrays.splice(clearedArrays.length, 0, [[]]);
-      }} 
-    */}
+    const clearedArrays = secondItems.map((row) => row.filter((clear) => clear.length > 0)).filter((cleared) => cleared.length > 0)
 
     clearedArrays.map((update) => update.splice(update.length, 0, []))
     clearedArrays.splice(clearedArrays.length, 0, [[]])
 
     const newBookmarks = [...bookmarks];
+
     newBookmarks[position] = [...clearedArrays];
 
     setInitialItems([...initialItems]);
     setSecondItems([...clearedArrays]);
     setBookmarks(newBookmarks);
   }, [initialItems, secondItems]);
+
+  const handleChange = (e) => {
+    setText(e.target.value)
+    console.log(text);
+  }
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    if (!text.length) {
+      return;
+    }
+
+    setBookmarks([...bookmarks, [[[]]]])
+    console.log([...bookmarkName])
+    setBookmarkName([...bookmarkName, text])
+    setText('Zalozka' + (bookmarks.length + 1))
+  }
 
   return (
     <div className="App">
@@ -116,6 +125,7 @@ function App() {
             <Droppable droppableId='dropContainer-dropContainer' type='row'>
               {(provided) => (
                 <div {...provided.droppableProps} ref={provided.innerRef}>
+
                   {secondItems.map((row, rowIndex) => (
                     <Draggable key={`row-${rowIndex}`} draggableId={`row-${rowIndex}`} index={rowIndex} type='row'>
                       {(provided) => (
@@ -132,7 +142,7 @@ function App() {
                                           {(provided) => (
                                             <div className={columnIndex === row.length - 1 ? 'lastOne' : 'dropItemsVertical'} {...provided.droppableProps} ref={provided.innerRef}>
                                               {column.map((item, index) => (
-                                                <Draggable key={item.id} draggableId={item.id} index={index} type='item'>
+                                                <Draggable key={item.id} draggableId={item.id} index={index} type={item.class}>
                                                   {(provided) => (
                                                     <div className='items' {...provided.draggableProps} {...provided.dragHandleProps} ref={provided.innerRef}>
                                                       {item.title}
@@ -164,81 +174,98 @@ function App() {
 
         </div>
       </DragDropContext>
-      <div>
-        {bookmarks.map((bookmark, index) => (
-          <div>
-            <div key={index}
+      <div className='schemaContainer'>
+        <div className='schemaItems'>
+          {bookmarks.map((bookmark, index) => (
+            <div className='bookmarkItems'
+              key={index}
               onClick={() => {
                 if (index === position) {
                   return false;
                 }
                 setPosition(index)
                 setSecondItems(bookmarks[index])
-              }}>
-              {index}
-
-            </div>
-            <button
-              onClick={() => {
-                const flatBookmark = [...bookmarks[index].flat()];
-                const returnedItems = [...initialItems, ...flatBookmark.flat()];
-
-                const updatedBookmarks = [...bookmarks];
-                updatedBookmarks.splice(index, 1);
-                setBookmarks(updatedBookmarks);
-                setSecondItems([[[]]])
-                setInitialItems(returnedItems);
               }}
-            >
-              delete
+
+            > {bookmarkName[index]}
+
+              {index > 0 && (
+                
+                <X className='X' data-lucide-name="x"
+                  onClick={() => {
+                    const flatBookmark = [...bookmarks[index].flat()];
+                    const returnedItems = [...initialItems, ...flatBookmark.flat()];
+
+                    const updatedBookmarks = [...bookmarks];
+                    updatedBookmarks.splice(index, 1);
+                    setBookmarks(updatedBookmarks);
+                    setInitialItems(returnedItems);
+                    setSecondItems([[[]]])
+                    setText('Zalozka' + (bookmarks.length - 1))
+                  }}
+                />
+              )}
+            </div>
+          ))}
+
+          <form onSubmit={handleSubmit}>
+            <label htmlFor="newBookmark">
+            </label>
+            <input className="formInputButton"
+              id="newBookmark"
+              onChange={handleChange}
+              value={text}
+            />
+            <button>
+              Add a bookmark
             </button>
-          </div>
-        ))}
+          </form>
 
-        <button
-          onClick={() => {
-            const newBookmarks = [...bookmarks, [[[]]]]
-            setBookmarks(newBookmarks)
-          }}
-        >
-          Add a bookmark
-        </button>
 
-        <button
-          onClick={() => {
-            const transformedBookmarks = bookmarks.map((bookmarkGroup) => {
-              return bookmarkGroup.map((bookmarkRow) => {
-                return bookmarkRow.map((bookmarkColumn) => {
-                  return bookmarkColumn
-                    .filter((item) => item.title && item.field)
-                    .map((item) => ({ field: item.field }));
+
+          <button
+            onClick={() => {
+              const transformedBookmarks = bookmarks.map((bookmarkGroup) => {
+                return bookmarkGroup.map((bookmarkRow) => {
+                  return bookmarkRow.map((bookmarkColumn) => {
+                    return bookmarkColumn
+                      .filter((item) => item.title && item.field)
+                      .map((item) => ({ field: item.field }));
+                  });
                 });
               });
-            });
 
-            const filteredTransformedBookmarks = transformedBookmarks
-              .map((bookmarkGroup) =>
-                bookmarkGroup.map((bookmarkRow) =>
-                  bookmarkRow.filter((bookmarkColumn) => bookmarkColumn.length > 0)
+              const filteredTransformedBookmarks = transformedBookmarks
+                .map((bookmarkGroup) =>
+                  bookmarkGroup.map((bookmarkRow) =>
+                    bookmarkRow.filter((bookmarkColumn) => bookmarkColumn.length > 0)
+                  )
                 )
-              )
-              .map((bookmarkGroup) => bookmarkGroup.filter((bookmarkRow) => bookmarkRow.length > 0));
+                .map((bookmarkGroup) => bookmarkGroup.filter((bookmarkRow) => bookmarkRow.length > 0));
 
-            const jsonData = JSON.stringify(filteredTransformedBookmarks, null, 2);
-            console.log(jsonData);
-            const blob = new Blob([jsonData], { type: 'application/json' });
-            const url = URL.createObjectURL(blob);
+              const jsonData = JSON.stringify(filteredTransformedBookmarks, null, 2);
+              console.log(jsonData);
+              const blob = new Blob([jsonData], { type: 'application/json' });
+              const url = URL.createObjectURL(blob);
 
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = 'clearedGui.json';
-            a.click();
+              const a = document.createElement('a');
+              a.href = url;
+              a.download = 'clearedGui.json';
+              a.click();
 
-            URL.revokeObjectURL(url);
-          }}
-        >
-          stringify
-        </button>
+              URL.revokeObjectURL(url);
+            }}
+          >
+            stringify
+          </button>
+          <button
+            onClick={() => {
+
+            }}
+          >
+            Add a line
+          </button>
+        </div>
       </div>
     </div>
   );
