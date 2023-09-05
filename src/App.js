@@ -175,7 +175,7 @@ function App() {
       }
       setBookmarks([...bookmarks, [[[]]]])
       setbookmarkNames([...bookmarkNames, text])
-      setText('Zalozka' + (bookmarks.length + 1))
+      setText('Zalozka ' + (bookmarks.length + 1))
     }
     else if (formName === 'titleForm') {
       if (!text2.length) {
@@ -310,12 +310,15 @@ function App() {
                 <X className='X' data-lucide-name="x"
                   onClick={() => {
                     const flatBookmark = [...bookmarks[index].flat()];
-                    const returnedItems = [...initialItems, ...flatBookmark.flat()];
+                    const returnedItems = [...flatBookmark.flat()];
+                    const returnedInitialItems = returnedItems.filter((bookmark) => bookmark.class === 'item')
+                    const returnedTitleItems = returnedItems.filter((bookmark) => bookmark.class !== 'item')
 
                     const updatedBookmarks = [...bookmarks];
                     updatedBookmarks.splice(index, 1);
                     setBookmarks(updatedBookmarks);
-                    setInitialItems(returnedItems);
+                    setInitialItems([...initialItems, ...returnedInitialItems]);
+                    setTitle([...title ,...returnedTitleItems]);
                     setSecondItems([[[]]])
                     setText('Zalozka' + (bookmarks.length - 1))
                   }}
