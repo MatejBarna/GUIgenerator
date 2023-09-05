@@ -36,81 +36,125 @@ function App() {
   const onDragEnd = useCallback((result) => {
     const { source, destination, draggableId } = result;
 
-    console.log(result.type)
-
-    if (!destination) {
-      return;
-    }
-    const src = source.droppableId.split('-')
-    const dest = destination.droppableId.split('-')
-
-    if (src[0] === 'dropContainer') {
-      secondItems[source.index] = secondItems.splice(destination.index, 1, secondItems[source.index])[0];
-      console.log(secondItems)
-    }
-
-    else if (src[0] === 'horizontal') {
-      const srcRowIndex = src[1];
-      const destRowIndex = dest[1];
-      const srcItemIndex = source.index;
-      const destItemIndex = destination.index;
-
-      setSecondItems((prevSecondItems) => {
-        const newSecondItems = [...prevSecondItems];
-        const srcRow = newSecondItems[srcRowIndex];
-        const destRow = newSecondItems[destRowIndex];
-        const [movedItem] = srcRow.splice(srcItemIndex, 1);
-
-        destRow.splice(destItemIndex, 0, movedItem);
-
-        return newSecondItems;
-      });
-    }
-
-    else {
-
-      const [srcName, srcRow, srcCol] = src[0] === 'initial' || 'title' ? source.droppableId.split('-') : src.slice(1).map(Number);
-      const [_, destRow, destCol] = destination.droppableId.split('-');
-
-      let sourceArray;
-      let destinationArray
-
-
-      if (srcRow === 'initial') {
-        sourceArray = initialItems;
-      } else if (srcRow === 'title') {
-        sourceArray = title;
+    try {
+      if (!destination) {
+        return;
       }
+      const src = source.droppableId.split('-')
+      const dest = destination.droppableId.split('-')
+
+      if (src[0] === 'dropContainer') {
+        secondItems[source.index] = secondItems.splice(destination.index, 1, secondItems[source.index])[0];
+      }
+
+      else if (src[0] === 'horizontal') {
+        const srcRowIndex = src[1];
+        const destRowIndex = dest[1];
+        const srcItemIndex = source.index;
+        const destItemIndex = destination.index;
+
+        setSecondItems((prevSecondItems) => {
+          const newSecondItems = [...prevSecondItems];
+          const srcRow = newSecondItems[srcRowIndex];
+          const destRow = newSecondItems[destRowIndex];
+          const [movedItem] = srcRow.splice(srcItemIndex, 1);
+
+          destRow.splice(destItemIndex, 0, movedItem);
+
+          return newSecondItems;
+        });
+      }
+
       else {
-        sourceArray = secondItems[srcRow][srcCol];
+        const [srcName, srcRow, srcCol] = src[0] === 'initial' || 'title' ? source.droppableId.split('-') : src.slice(1).map(Number);
+        const [destName, destRow, destCol] = destination.droppableId.split('-');
+
+        if (destName === 'vertical') {
+          console.log('vertical tu :)');
+          let sourceArray;
+          let destinationArray
+          if (srcRow === 'initial') {
+            sourceArray = initialItems;
+          } else if (srcRow === 'title') {
+            sourceArray = title;
+          }
+          else {
+            sourceArray = secondItems[srcRow][srcCol];
+          }
+
+          if (destRow === 'initial') {
+            destinationArray = initialItems;
+          } else if (destRow === 'title') {
+            destinationArray = title;
+          } else {
+            destinationArray = secondItems[destRow][destCol];
+          }
+          const [movedItem] = sourceArray.splice(source.index, 1);
+
+          destinationArray.splice(destination.index, 0, movedItem);
+        }
+
+        else if (destName === 'initial' && secondItems[srcRow][srcCol][0].class === 'item' && (srcName === 'vertical' || srcName === destName)) {
+          let sourceArray;
+          let destinationArray
+          if (srcRow === 'initial') {
+            sourceArray = initialItems;
+          }
+          else {
+            sourceArray = secondItems[srcRow][srcCol];
+          }
+
+          if (destRow === 'initial') {
+            destinationArray = initialItems;
+          } else {
+            destinationArray = secondItems[destRow][destCol];
+          }
+          const [movedItem] = sourceArray.splice(source.index, 1);
+
+          destinationArray.splice(destination.index, 0, movedItem);
+        }
+
+        else if (destName === 'title' && secondItems[srcRow][srcCol][0].class === 'title' && (srcName === 'vertical' || srcName === destName)) {
+          let sourceArray;
+          let destinationArray
+          if (srcRow === 'title') {
+            sourceArray = title;
+          }
+          else {
+            sourceArray = secondItems[srcRow][srcCol];
+          }
+
+          if (destRow === 'title') {
+            destinationArray = title;
+          } else {
+            destinationArray = secondItems[destRow][destCol];
+          }
+          const [movedItem] = sourceArray.splice(source.index, 1);
+
+          destinationArray.splice(destination.index, 0, movedItem);
+        }
       }
 
-      if (destRow === 'initial') {
-        destinationArray = initialItems;
-      } else if (destRow === 'title') {
-        destinationArray = title;
-      } else {
-        destinationArray = secondItems[destRow][destCol];
-      }
-      const [movedItem] = sourceArray.splice(source.index, 1);
 
-      destinationArray.splice(destination.index, 0, movedItem);
+
+      const clearedArrays = secondItems.map((row) => row.filter((clear) => clear.length > 0)).filter((cleared) => cleared.length > 0)
+
+      clearedArrays.map((update) => update.splice(update.length, 0, []))
+      clearedArrays.splice(clearedArrays.length, 0, [[]])
+
+
+
+      const newBookmarks = [...bookmarks];
+
+      newBookmarks[position] = [...clearedArrays];
+
+      setInitialItems([...initialItems]);
+      setSecondItems([...clearedArrays]);
+      setBookmarks(newBookmarks);
+    } catch (err) {
+      console.error(err);
     }
 
-    const clearedArrays = secondItems.map((row) => row.filter((clear) => clear.length > 0)).filter((cleared) => cleared.length > 0)
-
-    clearedArrays.map((update) => update.splice(update.length, 0, []))
-    clearedArrays.splice(clearedArrays.length, 0, [[]])
-
-
-
-    const newBookmarks = [...bookmarks];
-
-    newBookmarks[position] = [...clearedArrays];
-
-    setInitialItems([...initialItems]);
-    setSecondItems([...clearedArrays]);
-    setBookmarks(newBookmarks);
   }, [initialItems, secondItems, title]);
 
   const handleChange = (e) => {
@@ -118,7 +162,6 @@ function App() {
 
     if (name === 'text') {
       setText(value)
-      console.log(text);
     } else if (name === 'text2') {
       setText2(value)
     }
@@ -131,7 +174,6 @@ function App() {
         return;
       }
       setBookmarks([...bookmarks, [[[]]]])
-      console.log([...bookmarkNames])
       setbookmarkNames([...bookmarkNames, text])
       setText('Zalozka' + (bookmarks.length + 1))
     }
@@ -141,7 +183,7 @@ function App() {
       }
       setTitle((prevTitle) => [
         ...prevTitle,
-        { id: generateUniqueId(), title: text2, field: text2, class: 'titles' },
+        { id: generateUniqueId(), title: text2, field: text2, class: 'title' },
       ]);
       setText2('');
     }
@@ -206,7 +248,7 @@ function App() {
                                           {(provided) => (
                                             <div className={columnIndex === row.length - 1 ? 'lastOne' : 'dropItemsVertical'} {...provided.droppableProps} ref={provided.innerRef}>
                                               {column.map((item, index) => (
-                                                <Draggable key={item.id} draggableId={item.id} index={index} type={item.class}>
+                                                <Draggable key={item.id} draggableId={item.id} index={index} type='item'>
                                                   {(provided) => (
                                                     <div className='items' {...provided.draggableProps} {...provided.dragHandleProps} ref={provided.innerRef}>
                                                       {item.title}
