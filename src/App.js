@@ -29,8 +29,8 @@ function App() {
   const [title, setTitle] = useState([])
   const [bookmarks, setBookmarks] = useState([[[]]]);
   const [position, setPosition] = useState(0);
-  const [bookmarkName, setBookmarkName] = useState(['Formular'])
-  const [text, setText] = useState('Zalozka' + bookmarkName.length)
+  const [bookmarkNames, setbookmarkNames] = useState(['Formular'])
+  const [text, setText] = useState('Zalozka' + bookmarkNames.length)
   const [text2, setText2] = useState('');
 
   const onDragEnd = useCallback((result) => {
@@ -50,13 +50,21 @@ function App() {
     }
 
     else if (src[0] === 'horizontal') {
-      const temp = secondItems[src[1]][source.index]
-      secondItems[src[1]][source.index] = secondItems[dest[1]][destination.index]
-      secondItems[dest[1]][destination.index] = temp
-      if (src[1] !== dest[1]) {
-        secondItems[src[1]].splice(source.index, 1)
-      }
-      console.log(secondItems)
+      const srcRowIndex = src[1];
+      const destRowIndex = dest[1];
+      const srcItemIndex = source.index;
+      const destItemIndex = destination.index;
+
+      setSecondItems((prevSecondItems) => {
+        const newSecondItems = [...prevSecondItems];
+        const srcRow = newSecondItems[srcRowIndex];
+        const destRow = newSecondItems[destRowIndex];
+        const [movedItem] = srcRow.splice(srcItemIndex, 1);
+
+        destRow.splice(destItemIndex, 0, movedItem);
+
+        return newSecondItems;
+      });
     }
 
     else {
@@ -94,6 +102,8 @@ function App() {
     clearedArrays.map((update) => update.splice(update.length, 0, []))
     clearedArrays.splice(clearedArrays.length, 0, [[]])
 
+
+
     const newBookmarks = [...bookmarks];
 
     newBookmarks[position] = [...clearedArrays];
@@ -121,8 +131,8 @@ function App() {
         return;
       }
       setBookmarks([...bookmarks, [[[]]]])
-      console.log([...bookmarkName])
-      setBookmarkName([...bookmarkName, text])
+      console.log([...bookmarkNames])
+      setbookmarkNames([...bookmarkNames, text])
       setText('Zalozka' + (bookmarks.length + 1))
     }
     else if (formName === 'titleForm') {
@@ -131,7 +141,7 @@ function App() {
       }
       setTitle((prevTitle) => [
         ...prevTitle,
-        { id: generateUniqueId(), title: text2, class: 'titles' },
+        { id: generateUniqueId(), title: text2, field: text2, class: 'titles' },
       ]);
       setText2('');
     }
@@ -146,7 +156,7 @@ function App() {
               {(provided) => (
                 <div className='schemaItems' {...provided.droppableProps} ref={provided.innerRef} >
                   {initialItems.map((item, index) => (
-                    <Draggable key={item.id} draggableId={item.id} index={index} type={item.class}>
+                    <Draggable key={item.id} draggableId={item.id} index={index}>
                       {(provided) => (
                         <div className="items" {...provided.draggableProps} {...provided.dragHandleProps} ref={provided.innerRef}>
                           {item.title}
@@ -164,7 +174,7 @@ function App() {
               {(provided) => (
                 <div className='schemaItems' {...provided.droppableProps} ref={provided.innerRef} >
                   {title.map((title, titleIndex) => (
-                    <Draggable key={title.id} draggableId={title.id} index={titleIndex} type={title.class}>
+                    <Draggable key={title.id} draggableId={title.id} index={titleIndex}>
                       {(provided) => (
                         <div className="items" {...provided.draggableProps} {...provided.dragHandleProps} ref={provided.innerRef}>
                           {title.title}
@@ -251,7 +261,7 @@ function App() {
                 setSecondItems(bookmarks[index])
               }}
 
-            > {bookmarkName[index]}
+            > {bookmarkNames[index]}
 
               {index > 0 && (
 
@@ -293,11 +303,10 @@ function App() {
                   return bookmarkRow.map((bookmarkColumn) => {
                     return bookmarkColumn
                       .filter((item) => item.title && item.field)
-                      .map((item) => ({ field: item.field }));
+                      .map((item) => item.class === 'item' ? ({ field: item.field }) : ({ title: item.title }));
                   });
                 });
               });
-
               const filteredTransformedBookmarks = transformedBookmarks
                 .map((bookmarkGroup) =>
                   bookmarkGroup.map((bookmarkRow) =>
@@ -305,15 +314,20 @@ function App() {
                   )
                 )
                 .map((bookmarkGroup) => bookmarkGroup.filter((bookmarkRow) => bookmarkRow.length > 0));
-
+              bookmarkNames.map((name, index) => {
+                filteredTransformedBookmarks[index].splice(0, 0, { bookmarkName: bookmarkNames[index] });
+                return filteredTransformedBookmarks[index];
+              })
               const jsonData = JSON.stringify(filteredTransformedBookmarks, null, 2);
               console.log(jsonData);
               const blob = new Blob([jsonData], { type: 'application/json' });
               const url = URL.createObjectURL(blob);
 
+
+              filteredTransformedBookmarks.map((bookmarkName, index) => filteredTransformedBookmarks.splice(index, 0, { bookmarkName: bookmarkNames[index] }))
               const a = document.createElement('a');
               a.href = url;
-              a.download = 'clearedGui.json';
+              a.download = 'Gui.json';
               a.click();
 
               URL.revokeObjectURL(url);
