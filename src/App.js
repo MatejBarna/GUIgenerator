@@ -1,7 +1,7 @@
 import logo from './logo.svg';
 import './App.css';
 import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { X } from 'lucide-react';
 
 //schemas import
@@ -32,8 +32,11 @@ function App() {
   const [bookmarkName, setBookmarkName] = useState(['Formular'])
   const [text, setText] = useState('Zalozka' + bookmarkName.length)
   const [text2, setText2] = useState('');
+
   const onDragEnd = useCallback((result) => {
-    const { source, destination } = result;
+    const { source, destination, draggableId } = result;
+
+    console.log(result.type)
 
     if (!destination) {
       return;
@@ -58,13 +61,29 @@ function App() {
 
     else {
 
-      const [srcRow, srcCol] = src[0] === 'initial' ? source.droppableId.split('-') : src.slice(1).map(Number);
+      const [srcName, srcRow, srcCol] = src[0] === 'initial' || 'title' ? source.droppableId.split('-') : src.slice(1).map(Number);
       const [_, destRow, destCol] = destination.droppableId.split('-');
 
-      console.log(source, destination)
+      let sourceArray;
+      let destinationArray
 
-      const sourceArray = srcRow === 'initial' ? initialItems : secondItems[srcRow][srcCol];
-      const destinationArray = destRow === 'initial' ? initialItems : secondItems[destRow][destCol];
+
+      if (srcRow === 'initial') {
+        sourceArray = initialItems;
+      } else if (srcRow === 'title') {
+        sourceArray = title;
+      }
+      else {
+        sourceArray = secondItems[srcRow][srcCol];
+      }
+
+      if (destRow === 'initial') {
+        destinationArray = initialItems;
+      } else if (destRow === 'title') {
+        destinationArray = title;
+      } else {
+        destinationArray = secondItems[destRow][destCol];
+      }
       const [movedItem] = sourceArray.splice(source.index, 1);
 
       destinationArray.splice(destination.index, 0, movedItem);
@@ -82,7 +101,7 @@ function App() {
     setInitialItems([...initialItems]);
     setSecondItems([...clearedArrays]);
     setBookmarks(newBookmarks);
-  }, [initialItems, secondItems]);
+  }, [initialItems, secondItems, title]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -93,26 +112,28 @@ function App() {
     } else if (name === 'text2') {
       setText2(value)
     }
-
-    
   }
 
   const handleSubmit = (e, formName) => {
     e.preventDefault();
-    if(formName === 'bookmarkForm')
-      {if (!text.length) {
+    if (formName === 'bookmarkForm') {
+      if (!text.length) {
         return;
       }
       setBookmarks([...bookmarks, [[[]]]])
       console.log([...bookmarkName])
       setBookmarkName([...bookmarkName, text])
-      setText('Zalozka' + (bookmarks.length + 1))}
-    else if(formName === 'titleForm'){
-      if(!text2.length){
-        console.log('nothin in here')
+      setText('Zalozka' + (bookmarks.length + 1))
+    }
+    else if (formName === 'titleForm') {
+      if (!text2.length) {
+        return;
       }
-      setTitle([...title, text2])
-      console.log(title)
+      setTitle((prevTitle) => [
+        ...prevTitle,
+        { id: generateUniqueId(), title: text2, class: 'titles' },
+      ]);
+      setText2('');
     }
   }
 
@@ -125,10 +146,28 @@ function App() {
               {(provided) => (
                 <div className='schemaItems' {...provided.droppableProps} ref={provided.innerRef} >
                   {initialItems.map((item, index) => (
-                    <Draggable key={item.id} draggableId={item.id} index={index} type='item'>
+                    <Draggable key={item.id} draggableId={item.id} index={index} type={item.class}>
                       {(provided) => (
                         <div className="items" {...provided.draggableProps} {...provided.dragHandleProps} ref={provided.innerRef}>
                           {item.title}
+                        </div>
+                      )}
+                    </Draggable>
+                  ))}
+                  {provided.placeholder}
+                </div>
+              )}
+            </Droppable>
+          </div>
+          <div className='titleContainer'>
+            <Droppable droppableId={`title-title`} direction="vertical" type='item'>
+              {(provided) => (
+                <div className='schemaItems' {...provided.droppableProps} ref={provided.innerRef} >
+                  {title.map((title, titleIndex) => (
+                    <Draggable key={title.id} draggableId={title.id} index={titleIndex} type={title.class}>
+                      {(provided) => (
+                        <div className="items" {...provided.draggableProps} {...provided.dragHandleProps} ref={provided.innerRef}>
+                          {title.title}
                         </div>
                       )}
                     </Draggable>
@@ -142,13 +181,11 @@ function App() {
             <Droppable droppableId='dropContainer-dropContainer' type='row'>
               {(provided) => (
                 <div {...provided.droppableProps} ref={provided.innerRef}>
-
                   {secondItems.map((row, rowIndex) => (
                     <Draggable key={`row-${rowIndex}`} draggableId={`row-${rowIndex}`} index={rowIndex} type='row'>
                       {(provided) => (
                         <div {...provided.draggableProps} {...provided.dragHandleProps} ref={provided.innerRef}>
                           <Droppable key={`horizontal-${rowIndex}`} droppableId={`horizontal-${rowIndex}`} direction="horizontal">
-
                             {(provided) => (
                               <div className="dropItemsHorizontal" {...provided.droppableProps} ref={provided.innerRef}>
                                 {row.map((column, columnIndex) => (
@@ -217,7 +254,7 @@ function App() {
             > {bookmarkName[index]}
 
               {index > 0 && (
-                
+
                 <X className='X' data-lucide-name="x"
                   onClick={() => {
                     const flatBookmark = [...bookmarks[index].flat()];
