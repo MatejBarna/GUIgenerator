@@ -193,91 +193,104 @@ function App() {
     <div className="App">
       <DragDropContext onDragEnd={onDragEnd}>
         <div className="container">
-          <div className='schemaContainer'>
-            <Droppable droppableId={`initial-initial`} direction="vertical" type='item'>
-              {(provided) => (
-                <div className='schemaItems' {...provided.droppableProps} ref={provided.innerRef} >
-                  {initialItems.map((item, index) => (
-                    <Draggable key={item.id} draggableId={item.id} index={index}>
-                      {(provided) => (
-                        <div className="items" {...provided.draggableProps} {...provided.dragHandleProps} ref={provided.innerRef}>
-                          {item.title}
-                        </div>
-                      )}
-                    </Draggable>
-                  ))}
-                  {provided.placeholder}
-                </div>
-              )}
-            </Droppable>
+          <div className='leftContainers'>
+            <div className='schemaContainer'>
+              <Droppable droppableId={`initial-initial`} direction="vertical" type='item'>
+                {(provided) => (
+                  <div className='schemaItems' {...provided.droppableProps} ref={provided.innerRef} >
+                    {initialItems.map((item, index) => (
+                      <Draggable key={item.id} draggableId={item.id} index={index}>
+                        {(provided) => (
+                          <div className="items" {...provided.draggableProps} {...provided.dragHandleProps} ref={provided.innerRef}>
+                            {item.title}
+                          </div>
+                        )}
+                      </Draggable>
+                    ))}
+                    {provided.placeholder}
+                  </div>
+                )}
+              </Droppable>
+            </div>
+            <div className='titleContainer'>
+              <Droppable droppableId={`title-title`} direction="vertical" type='item'>
+                {(provided) => (
+                  <div className='schemaItems' {...provided.droppableProps} ref={provided.innerRef} >
+                    <form onSubmit={(e) => handleSubmit(e, 'titleForm')}>
+                      <input className="formInputButton"
+                        id="newBookmark"
+                        name='text2'
+                        value={text2}
+                        onChange={handleChange}
+                      />
+                      <button>
+                        Add a title
+                      </button>
+                    </form>
+                    {title.map((title, titleIndex) => (
+                      <Draggable key={title.id} draggableId={title.id} index={titleIndex}>
+                        {(provided) => (
+                          <div className="items" {...provided.draggableProps} {...provided.dragHandleProps} ref={provided.innerRef}>
+                            {title.title}
+                          </div>
+                        )}
+                      </Draggable>
+                    ))}
+                    {provided.placeholder}
+                  </div>
+                )}
+              </Droppable>
+            </div>
+            <div className='dropContainer'>
+              <Droppable droppableId='dropContainer-dropContainer' type='row'>
+                {(provided) => (
+                  <div {...provided.droppableProps} ref={provided.innerRef}>
+                    {secondItems.map((row, rowIndex) => (
+                      <Draggable key={`row-${rowIndex}`} draggableId={`row-${rowIndex}`} index={rowIndex} type='row'>
+                        {(provided) => (
+                          <div {...provided.draggableProps} {...provided.dragHandleProps} ref={provided.innerRef}>
+                            <Droppable key={`horizontal-${rowIndex}`} droppableId={`horizontal-${rowIndex}`} direction="horizontal">
+                              {(provided) => (
+                                <div className="dropItemsHorizontal" {...provided.droppableProps} ref={provided.innerRef}>
+                                  {row.map((column, columnIndex) => (
+                                    <Draggable key={`vertical-${columnIndex}`} draggableId={`vertical-${rowIndex}-${columnIndex}`} index={columnIndex} type='col'>
+                                      {(provided) => (
+                                        <div className='dragItemsVertical' {...provided.draggableProps} {...provided.dragHandleProps} ref={provided.innerRef}>
+                                          <Droppable key={`vertical-${rowIndex}-${columnIndex}`} droppableId={`vertical-${rowIndex}-${columnIndex}`} direction="vertical" type='item'>
+                                            {(provided) => (
+                                              <div className={columnIndex === row.length - 1 ? 'lastOne' : 'dropItemsVertical'} {...provided.droppableProps} ref={provided.innerRef}>
+                                                {column.map((item, index) => (
+                                                  <Draggable key={item.id} draggableId={item.id} index={index} type='item'>
+                                                    {(provided) => (
+                                                      <div className='items' {...provided.draggableProps} {...provided.dragHandleProps} ref={provided.innerRef}>
+                                                        {item.title}
+                                                      </div>
+                                                    )}
+                                                  </Draggable>
+                                                ))}
+                                                {provided.placeholder}
+                                              </div>
+                                            )}
+                                          </Droppable>
+                                        </div>
+                                      )}
+                                    </Draggable>
+                                  ))}
+                                  {provided.placeholder}
+                                </div>
+                              )}
+                            </Droppable>
+                          </div>
+                        )}
+                      </Draggable>
+                    ))}
+                    {provided.placeholder}
+                  </div>
+                )}
+              </Droppable>
+            </div>
           </div>
-          <div className='titleContainer'>
-            <Droppable droppableId={`title-title`} direction="vertical" type='item'>
-              {(provided) => (
-                <div className='schemaItems' {...provided.droppableProps} ref={provided.innerRef} >
-                  {title.map((title, titleIndex) => (
-                    <Draggable key={title.id} draggableId={title.id} index={titleIndex}>
-                      {(provided) => (
-                        <div className="items" {...provided.draggableProps} {...provided.dragHandleProps} ref={provided.innerRef}>
-                          {title.title}
-                        </div>
-                      )}
-                    </Draggable>
-                  ))}
-                  {provided.placeholder}
-                </div>
-              )}
-            </Droppable>
-          </div>
-          <div className='dropContainer'>
-            <Droppable droppableId='dropContainer-dropContainer' type='row'>
-              {(provided) => (
-                <div {...provided.droppableProps} ref={provided.innerRef}>
-                  {secondItems.map((row, rowIndex) => (
-                    <Draggable key={`row-${rowIndex}`} draggableId={`row-${rowIndex}`} index={rowIndex} type='row'>
-                      {(provided) => (
-                        <div {...provided.draggableProps} {...provided.dragHandleProps} ref={provided.innerRef}>
-                          <Droppable key={`horizontal-${rowIndex}`} droppableId={`horizontal-${rowIndex}`} direction="horizontal">
-                            {(provided) => (
-                              <div className="dropItemsHorizontal" {...provided.droppableProps} ref={provided.innerRef}>
-                                {row.map((column, columnIndex) => (
-                                  <Draggable key={`vertical-${columnIndex}`} draggableId={`vertical-${rowIndex}-${columnIndex}`} index={columnIndex} type='col'>
-                                    {(provided) => (
-                                      <div className='dragItemsVertical' {...provided.draggableProps} {...provided.dragHandleProps} ref={provided.innerRef}>
-                                        <Droppable key={`vertical-${rowIndex}-${columnIndex}`} droppableId={`vertical-${rowIndex}-${columnIndex}`} direction="vertical" type='item'>
-                                          {(provided) => (
-                                            <div className={columnIndex === row.length - 1 ? 'lastOne' : 'dropItemsVertical'} {...provided.droppableProps} ref={provided.innerRef}>
-                                              {column.map((item, index) => (
-                                                <Draggable key={item.id} draggableId={item.id} index={index} type='item'>
-                                                  {(provided) => (
-                                                    <div className='items' {...provided.draggableProps} {...provided.dragHandleProps} ref={provided.innerRef}>
-                                                      {item.title}
-                                                    </div>
-                                                  )}
-                                                </Draggable>
-                                              ))}
-                                              {provided.placeholder}
-                                            </div>
-                                          )}
-                                        </Droppable>
-                                      </div>
-                                    )}
-                                  </Draggable>
-                                ))}
-                                {provided.placeholder}
-                              </div>
-                            )}
-                          </Droppable>
-                        </div>
-                      )}
-                    </Draggable>
-                  ))}
-                  {provided.placeholder}
-                </div>
-              )}
-            </Droppable>
-          </div>
-          <form onSubmit={(e) => handleSubmit(e, 'titleForm')}>
+          {/*<form onSubmit={(e) => handleSubmit(e, 'titleForm')}>
             <input className="formInputButton"
               id="newBookmark"
               name='text2'
@@ -287,11 +300,11 @@ function App() {
             <button>
               Add a bookmark
             </button>
-          </form>
+                                                  </form>*/}
         </div>
       </DragDropContext>
-      <div className='schemaContainer'>
-        <div className='schemaItems'>
+      <div className='rightContainer'>
+        <div className='bookmarkContainer'>
           {bookmarks.map((bookmark, index) => (
             <div className='bookmarkItems'
               key={index}
@@ -303,8 +316,10 @@ function App() {
                 setSecondItems(bookmarks[index])
               }}
 
-            > {bookmarkNames[index]}
-
+            > 
+            <div className='bookmarkItem'>
+              {bookmarkNames[index]}
+            </div>
               {index > 0 && (
 
                 <X className='X' data-lucide-name="x"
@@ -318,7 +333,7 @@ function App() {
                     updatedBookmarks.splice(index, 1);
                     setBookmarks(updatedBookmarks);
                     setInitialItems([...initialItems, ...returnedInitialItems]);
-                    setTitle([...title ,...returnedTitleItems]);
+                    setTitle([...title, ...returnedTitleItems]);
                     setSecondItems([[[]]])
                     setText('Zalozka' + (bookmarks.length - 1))
                   }}
